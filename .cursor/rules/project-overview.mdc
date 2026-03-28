@@ -1,0 +1,67 @@
+---
+description: Project architecture, tech stack, folder layout, and client-server contract
+alwaysApply: true
+---
+
+# StudySprint Blog -- Project Overview
+
+Two independent packages, no root `package.json`, no monorepo tooling.
+
+## Tech Stack
+
+- **Client** (`client/`): React 19, Vite 6, Ant Design, Axios, React Router v7, react-i18next, plain CSS
+- **Server** (`server/`): Express 5, Mongoose 8, MongoDB, JWT auth, Multer uploads, Google GenAI
+- **Language**: JavaScript ESM everywhere -- do NOT generate `.ts` or `.tsx` files
+- **Deployment**: each package has its own `vercel.json`
+
+## Folder Layout
+
+```
+client/src/
+  api/           # axios modules (blogApi, commentApi, adminApi) + axiosConfig
+  components/    # shared UI (Navbar, Footer, Loader)
+  constants/     # routes.js, apiEndpoints.js, messages.js, categories.js
+  context/       # AppContext (token, blogs)
+  hooks/         # core/ (useApiRequest, useApiQuery, useApiMutation), api/, utils/
+  i18n/          # i18next config + locales/en.json
+  pages/         # public/ (Home, BlogDetail) + admin/ (Dashboard, AddBlog, Articles, Comments, auth/)
+
+server/src/
+  configs/       # db.js, gemini.js
+  constants/     # messages.js (error/success strings + HTTP status codes)
+  controllers/   # one per domain (blog, admin, app)
+  helpers/       # asyncHandler.js, response.js (sendSuccess, sendError, sendData)
+  middleware/    # auth.js, errorHandler.js, rateLimiter.js, multer.js
+  models/        # User.js, Blog.js, Comment.js
+  routes/        # one per domain, 1:1 with controllers
+  validators/    # request body validation middleware
+  utils/         # httpLogger.js, dbLogger.js, imageUrl.js
+```
+
+## Client-Server Contract
+
+- Client endpoints live in `client/src/constants/apiEndpoints.js`; server routes in `server/src/routes/`
+- When adding a new endpoint: update BOTH the server route AND the client `API_ENDPOINTS` constant
+- New client API modules go in `client/src/api/` with hooks in `client/src/hooks/api/`
+- All responses follow `{ success: boolean, message?: string, ...data }`
+- Auth: client sends `Authorization: Bearer <token>` (axios interceptor); server checks with `auth` middleware
+- File uploads: `FormData` on client, `multer.single('image')` on server
+- **Server request validation:** use middleware in `server/src/validators/` before controllers; failures return `{ success: false, message, errors: [...] }`. Conventions: **Validation** section in `.cursor/rules/express-backend.mdc` (when editing `server/src/**`)
+
+## Cursor rules (.mdc)
+
+- Frontmatter: always set `description`; use `globs` for path-scoped rules; use `alwaysApply: true` only for repo-wide rules (this file)
+- Align `globs` with packages: `react-frontend.mdc` → `client/src/**`, `express-backend.mdc` → `server/src/**`
+
+## Environment Variables
+
+- **Client**: `VITE_BASE_URL` (server URL)
+- **Server**: `PORT`, `CLIENT_URL`, `MONGODB_URI`, `JWT_SECRET`, `GEMINI_API_KEY`, `SERVER_URL`
+
+## Dependencies
+
+Install in the correct package -- never at the repo root.
+
+## Local checks
+
+- After `client/` changes, run `npm run lint` from `client/` before opening a PR when practical
