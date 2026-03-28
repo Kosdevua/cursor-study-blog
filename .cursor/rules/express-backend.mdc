@@ -1,0 +1,50 @@
+---
+description: Express controller, route, middleware, and Mongoose model conventions
+globs: server/src/**/*.js
+alwaysApply: false
+---
+
+# Express Backend Conventions
+
+## Controllers
+
+- Wrap every async handler with `asyncHandler` from `src/helpers/asyncHandler.js`
+- Use response helpers from `src/helpers/response.js`:
+
+```js
+// Prefer this:
+sendSuccess(res, { blog }, 'Blog created', 201)
+sendError(res, 'Blog not found', 404)
+sendData(res, { blogs }, blogs.length)
+
+// NOT this:
+res.status(201).json({ success: true, message: '...', blog })
+```
+
+- Error strings and status codes come from `src/constants/messages.js` -- do not hardcode
+
+## Routes
+
+- One route file per domain in `src/routes/`, one matching controller in `src/controllers/`
+- Auth-protected routes use `auth` middleware from `src/middleware/auth.js`
+- New public endpoints must have a rate limiter from `src/middleware/rateLimiter.js`
+
+## Validation
+
+- Request body validation goes in `src/validators/` as Express middleware
+- Validators run BEFORE the controller in the route chain
+- Return `{ success: false, message: 'Validation failed', errors: [...] }` on failure
+
+## Models
+
+- File: `PascalCase.js` matching the model name (`Blog.js` exports `Blog`)
+- Always include `{ timestamps: true }` in schema options
+- Use `ref` for ObjectId relationships; add `required: true` on mandatory fields
+- Schema-level methods (e.g., `comparePassword`) and `toJSON` transforms -- not in controllers
+- Default export: `export default mongoose.model('Name', schema)`
+
+## Security
+
+- `helmet`, `cors`, `express-rate-limit` are configured in `server.js` -- do not duplicate
+- `express-mongo-sanitize` is installed but unused -- apply it if handling user input in new features
+- Never hardcode secrets or URLs -- use `process.env`

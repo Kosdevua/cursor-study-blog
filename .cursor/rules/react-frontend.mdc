@@ -1,0 +1,39 @@
+---
+description: React component patterns, Ant Design usage, hooks, and styling conventions
+globs: client/src/**/*.{js,jsx,css}
+alwaysApply: false
+---
+
+# React Frontend Conventions
+
+## Components
+
+- Functional components only -- no class components
+- PascalCase folder + `.jsx` file per component; barrel `index.js` re-exports default
+- Colocated `.css` file for styles; use Ant Design `theme.useToken()` for dynamic values
+
+## Data Fetching
+
+- Use hooks from `src/hooks/` for ALL API calls:
+  - `useApiRequest` -- imperative mutations (submit, delete)
+  - `useApiQuery` -- declarative data loading
+  - `useApiMutation` -- form submissions with loading state
+- Never import or call `axios` directly in components or pages
+
+## UI Library
+
+- Ant Design is the component library -- use `Button`, `Input`, `Table`, `Card`, `Form`, `Modal`, `Select`, etc.
+- Do NOT use raw `<button>`, `<input>`, `<select>`, or `<table>` HTML elements
+- Toast notifications: `react-hot-toast` (`toast.success` / `toast.error`)
+
+## Constants
+
+- Route paths: import from `src/constants/routes.js` (`ROUTES` object) -- no hardcoded path strings
+- API URLs: import from `src/constants/apiEndpoints.js` (`API_ENDPOINTS`) -- no hardcoded URLs
+- UI strings: use `useTranslation()` from `react-i18next`; keys in `src/i18n/locales/en.json`
+
+## File Naming
+
+- Pages/components: `PascalCase/PascalCase.jsx` + `PascalCase.css`
+- Hooks: `camelCase.js` prefixed with `use`
+- Utils/constants: `camelCase.js`
